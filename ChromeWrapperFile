@@ -1,0 +1,34 @@
+@echo off
+setlocal
+
+:: Path to real Chrome
+set "CHROME_EXE=C:\Program Files\Google\Chrome\Application\chrome.exe"
+
+:: Debug port & fixed profile
+set "REMOTE_PORT=9222"
+set "PROFILE_DIR=%TEMP%\chrome-selenium-profile"
+
+:: Default URL if nothing is passed
+set "URL=https://google.com"
+if not "%~1"=="" (
+    set "URL=%~1"
+)
+
+:: Check if Chrome with our profile is already running
+tasklist /FI "IMAGENAME eq chrome.exe" /FI "WINDOWTITLE eq Chrome*" | find /I "chrome.exe" >nul
+if %ERRORLEVEL%==0 (
+    echo Chrome already running → opening new tab...
+    start "" "%CHROME_EXE%" --user-data-dir="%PROFILE_DIR%" --profile-directory=Default --new-tab "%URL%"
+) else (
+    echo Starting debug Chrome...
+    start "" "%CHROME_EXE%" ^
+      --remote-debugging-port=%REMOTE_PORT% ^
+      --user-data-dir="%PROFILE_DIR%" ^
+      --profile-directory=Default ^
+      --no-first-run ^
+      --no-default-browser-check ^
+      --disable-popup-blocking ^
+      "%URL%"
+)
+
+exit /b 0
